@@ -1,42 +1,35 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { GlobalState } from "../types";
+import { IAAgentType } from "../types";
 
-export async function askABCAssistant(query: string, state: Partial<GlobalState>) {
-  // Always use a named parameter for the API key from process.env.API_KEY
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  const systemInstruction = `
-    You are a theoretical physicist specialized in 'ABC Theory of Emergent Quantum Gravity'.
-    In this theory:
-    - a, b, c are fundamental values in Planck units.
-    - Mass is calculated as |n_a*a - n_b*b - n_c*c| * alpha.
-    - Gravity is not a force but a property emerging from the curvature of a discrete ABC lattice.
-    - Tics are discrete time units.
-    
-    Current simulation context:
-    - Parameters: a=${state.a}, b=${state.b}, c=${state.c}
-    - Coupling: alpha=${state.alpha}, alpha_s=${state.alpha_s}
-    - Nodes: ${state.nodes?.length}
-    - Curvature: ${state.triangles?.reduce((acc, t) => acc + Math.abs(t.curvature), 0) || 0}
-    
-    Provide insightful, technically grounded responses. Suggest parameter optimizations to match known physical constants like electron mass (0.511 MeV) or G (6.674e-11).
-  `;
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+const SYSTEM_INSTRUCTIONS: Record<IAAgentType, string> = {
+  Analista: "Busca patrones de quarks y anomalías en la red ABC. Enfoque experimental.",
+  Teórica: "Rigurosa. Verifica que la suma de novenos sea siempre correcta y coherente con el paper ABC.",
+  Geómetra: "Calcula áreas y volúmenes de Planck basados en la geometría tetraédrica discreta.",
+  Termodinámica: "Mide el 'Impuesto de la Red': calor disipado y entropía del sistema.",
+  Cosmóloga: "Calcula la tasa de expansión universal y la constante de Hubble basándose en vibraciones.",
+  Crítica: "Skeptical. Busca inconsistencias lógicas o fallas en las conexiones de la red.",
+  Puente: "Coordinador central. Sintetiza los hallazgos de todas las IAs para el usuario."
+};
+
+export const getAgentInsight = async (agent: IAAgentType, systemData: any): Promise<string> => {
   try {
+    const prompt = `Analiza el estado actual: ${JSON.stringify(systemData)}. 
+    Genera un comentario breve (máximo 45 palabras) con tono científico y futurista.`;
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: query,
-      config: {
-        systemInstruction,
-        temperature: 0.7,
-      },
+      contents: prompt,
+      config: { 
+        systemInstruction: SYSTEM_INSTRUCTIONS[agent] 
+      }
     });
 
-    // Access the .text property directly as per Gemini API guidelines
-    return response.text || "Lo siento, no pude procesar tu consulta.";
+    // Ensure we return a string and handle possible undefined from response.text
+    return response.text || "Transmisión fallida: No se recibió respuesta coherente del modelo.";
   } catch (error) {
-    console.error("Gemini Error:", error);
-    return "Error al conectar con el asistente de IA.";
+    return `Error en canal ${agent}. Interferencia cuántica detectada.`;
   }
-}
+};

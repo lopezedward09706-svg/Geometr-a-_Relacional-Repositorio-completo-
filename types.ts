@@ -1,74 +1,50 @@
 
-export type NodeState = 'a' | 'b' | 'c' | 'A' | 'B' | 'C';
+export enum NodeClass {
+  A = 'A',
+  B = 'B',
+  C = 'C'
+}
 
-export interface ABCNode {
-  id: number;
+export interface QuantumNode {
+  id: string;
   x: number;
   y: number;
-  z: number;
-  state: NodeState;
-  energy: number;
-  isExcited: boolean;
-  connections: number[];
+  vx: number;
+  vy: number;
+  type: NodeClass;
+  charge: number; // Numerator of n/9
+  isHighlighted?: boolean;
+  isDragging?: boolean;
+  mass: number;
 }
 
-export interface ABCEdge {
-  id: number;
-  node1: number;
-  node2: number;
-  length: number;
-  naturalLength: number;
+export interface Connection {
+  sourceId: string;
+  targetId: string;
   tension: number;
-  color: string;
 }
 
-export interface ABCTriangle {
-  id: number;
-  nodes: [number, number, number];
-  states: [NodeState, NodeState, NodeState];
-  curvature: number;
-}
+export type IAAgentType = 
+  | 'Analista' 
+  | 'Teórica' 
+  | 'Geómetra' 
+  | 'Termodinámica' 
+  | 'Cosmóloga' 
+  | 'Crítica' 
+  | 'Puente';
 
-export interface MassPoint {
-  id: number;
-  position: { x: number; y: number; z: number };
-  composition: { A: number; b: number; c: number };
-  totalMass: number;
-}
-
-export interface SimulationMetrics {
-  tick: number;
-  totalEnergy: number;
-  avgCurvature: number;
-  radialDeform: number;
-  numExcited: number;
-}
-
-export interface ValidationResult {
-  predicted: number;
-  actual: number;
-  error: number;
-  status: 'success' | 'warning' | 'error';
-}
-
-export interface GlobalState {
-  a: number;
-  b: number;
-  c: number;
-  alpha: number;
-  alpha_w: number;
-  alpha_s: number;
-  currentTick: number;
-  isRunning: boolean;
-  nodes: ABCNode[];
-  edges: ABCEdge[];
-  triangles: ABCTriangle[];
-  massPoints: MassPoint[];
-  logs: LogEntry[];
-}
-
-export interface LogEntry {
-  timestamp: string;
+export interface IALog {
+  agent: IAAgentType;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  timestamp: string;
+  type: 'info' | 'exito' | 'advertencia' | 'error';
 }
+
+export interface TelemetryData {
+  hubbleConstant: number;
+  alpha: number;
+  gravityWaves: string;
+  nasaGravity: number;
+}
+
+export type ParticleType = 'quark-up' | 'quark-down' | 'electron' | 'neutrino' | 'proton';
