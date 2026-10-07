@@ -69,9 +69,8 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
 
             addMassFromDensity() {
                  if (this.config.massDensity <= 0) return;
-                 const totalMass = Math.max(0, this.config.massDensity);
-                 const radius = Math.pow(3 * totalMass / (4 * Math.PI * Math.max(0.001, this.config.massDensity)), 1/3) || 0.1;
-                 this.masses.push({ id: this.masses.length, molecules: [], position: { x: 0, y: 0 }, mass: totalMass, radius: radius, state: 'solid', color: '#888888' });
+                 const totalMass = this.config.massDensity;
+                 this.masses.push({ id: this.masses.length, molecules: [], position: { x: 0, y: 0 }, mass: totalMass, radius: Math.pow(3 * totalMass / (4 * Math.PI * this.config.massDensity), 1/3) || 0.1, state: 'solid', color: '#888888' });
             }
 
             updateEmergentProperties() {
@@ -113,7 +112,7 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
             
             addSpaceship() {
                 this.spaceships.push({
-                    id: this.spaceships.length, position: {x: 0.5, y: 0}, velocity: {x: -0.5, y: 0.2}, color: '#ffff00', size: 5, trail: []
+                    id: this.spaceships.length, position: {x: 0.5, y: 0}, velocity: {x: -0.5, y: 0.2}, color: '#ffff00', size: 10, trail: []
                 });
             }
         }
@@ -170,17 +169,13 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                 // Draw Masses
                 this.red.masses.forEach((m: any) => {
                     this.ctx.fillStyle = m.color;
-                    const r = Math.max(0, m.radius * 200);
-                    if (r > 0) {
-                        this.ctx.beginPath(); this.ctx.arc(m.position.x, m.position.y, r, 0, Math.PI*2); this.ctx.fill();
-                    }
+                    this.ctx.beginPath(); this.ctx.arc(m.position.x, m.position.y, m.radius * 200, 0, Math.PI*2); this.ctx.fill();
                 });
 
                 // Draw Spaceships
                 this.red.spaceships.forEach((s: any) => {
                     this.ctx.fillStyle = s.color;
-                    const size = Math.max(0, s.size || 5);
-                    this.ctx.beginPath(); this.ctx.arc(s.position.x * 300, s.position.y * 300, size, 0, Math.PI*2); this.ctx.fill();
+                    this.ctx.beginPath(); this.ctx.arc(s.position.x * 300, s.position.y * 300, 5, 0, Math.PI*2); this.ctx.fill();
                 });
 
                 this.ctx.restore();
@@ -194,8 +189,12 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
             massDensity: initialParams.centralMass
         });
         
+        // Expose to window for the "buttons" to work if we were using raw HTML
+        // But here we will create refs/functions
+        
         const viz = new VisualizationSystem(canvasRef.current!, red);
         
+        // Globals for the UI buttons to access (Simulating the monolithic structure)
         (window as any).quantumRed = red;
         (window as any).viz = viz;
 
@@ -214,12 +213,12 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
         return () => cancelAnimationFrame(frameId);
     }, [initialParams]);
 
+    // Helper functions for UI
     const getRed = () => (window as any).quantumRed;
     
     const updateMetrics = (red: any) => {
-        const active = document.getElementById('abcActive');
-        if (!active) return;
-        active.textContent = (red.triangles.length * 3).toString();
+        if (!document.getElementById('abcActive')) return; // Check if mounted
+        document.getElementById('abcActive')!.textContent = (red.triangles.length * 3).toString();
         document.getElementById('quarksFormed')!.textContent = red.quarks.length;
         document.getElementById('atomsFormed')!.textContent = red.atoms.length;
         document.getElementById('iaConsensus')!.textContent = (Math.random() * 100).toFixed(1) + '%';
@@ -259,6 +258,7 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+                    {/* Controls */}
                     <div className="panel">
                         <h3 className="panel-title">🎛️ CONTROLES FÍSICOS</h3>
                         <div className="space-y-4">
@@ -281,14 +281,15 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                                <button onClick={() => { if(getRed()) getRed().isRunning = true; }}>▶ INICIAR</button>
-                                <button onClick={() => { if(getRed()) getRed().isRunning = false; }}>⏸ PAUSAR</button>
-                                <button onClick={() => { if(getRed()) getRed().initializeNetwork(); }}>🔄 REINICIAR</button>
-                                <button onClick={() => { if(getRed()) getRed().addSpaceship(); }}>🚀 NAVE C</button>
+                                <button onClick={() => getRed().isRunning = true}>▶ INICIAR</button>
+                                <button onClick={() => getRed().isRunning = false}>⏸ PAUSAR</button>
+                                <button onClick={() => { getRed().initializeNetwork(); }}>🔄 REINICIAR</button>
+                                <button onClick={() => getRed().addSpaceship()}>🚀 NAVE C</button>
                             </div>
                         </div>
                     </div>
 
+                    {/* Canvas */}
                     <div className="panel lg:col-span-2 relative">
                         <canvas ref={canvasRef} width={800} height={400} className="w-full h-[400px] bg-[#000022] rounded border border-[#004488]" />
                         <div className="absolute top-2 left-2 bg-black/50 p-2 text-xs">
@@ -298,6 +299,7 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                         </div>
                     </div>
 
+                    {/* Metrics */}
                     <div className="panel">
                         <h3 className="panel-title">📊 MÉTRICAS EMERGENTES</h3>
                         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -326,6 +328,7 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                     </div>
                 </div>
 
+                {/* IA Panels Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
                     {[1,2,3,4,5,6,7].map(id => (
                         <div key={id} className="panel flex flex-col">
@@ -339,6 +342,7 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                     ))}
                 </div>
 
+                {/* Shared Code & Repair */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div className="panel lg:col-span-2 bg-[#0a001e]">
                         <h3 className="panel-title">💾 CÓDIGO COMPARTIDO (IA6 → IA7)</h3>
@@ -352,6 +356,7 @@ const FullTheorySimulation: React.FC<FullTheorySimulationProps> = ({ initialPara
                          </div>
                     </div>
                 </div>
+
             </div>
         </div>
     );

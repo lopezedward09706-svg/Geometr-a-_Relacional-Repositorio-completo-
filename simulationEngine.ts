@@ -1,270 +1,244 @@
 
-import { ABCNode, Quark, Atom, SimulationParameters, GlobalState, NodeType, PhysicalConstants, Vector3, ParticleClass, CosmicPhase } from '../types';
-import { CONSTANTS } from '../constants';
+import { ABCNode, Quark, SimulationParameters, GlobalState, NodeType } from '../types';
+import { PLANCK_ENERGY } from '../constants';
 
-const crossProduct = (v1: Vector3, v2: Vector3): Vector3 => ({
-    x: v1.y * v2.z - v1.z * v2.y,
-    y: v1.z * v2.x - v1.x * v2.y,
-    z: v1.x * v2.y - v1.y * v2.x
-});
-
-const dotProduct = (v1: Vector3, v2: Vector3): number => v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-
-const vectorNorm = (v: Vector3): number => Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-
-const normalizeVector = (v: Vector3): Vector3 => {
-    const n = vectorNorm(v) || 1;
-    return { x: v.x / n, y: v.y / n, z: v.z / n };
+const MathUtils = {
+    gaussian: () => {
+        let u = 0, v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    },
+    dist: (x1: number, y1: number, x2: number, y2: number) => Math.sqrt((x1-x2)**2 + (y1-y2)**2)
 };
 
 export class SimulationEngine {
     state: GlobalState;
     private idCounter = 0;
-    private atomCounter = 0;
-    private quarkCounter = 0;
-    private currentRigidity = 1.0;
-    private interactionGradientSum = 0;
-    private interactionCount = 0;
-    private totalStructuralTension = 0;
-    private totalRotations = 0;
-    private anomaliesDetected = 0;
-    private massAuditResidual = 0;
-    private experimentalDeviance = 0;
-    private standardCompatibility = 1.0;
-    private newtonianError = 0;
-    private refractiveIndex = 1.0;
-    private snellDeviance = 0;
-    private initialTotalVorticity = 0;
-    private vorticityDeviance = 0;
-    private gradientDeviance = 0;
+    private gridRes = 24;
 
     constructor(params: SimulationParameters) {
-        this.currentRigidity = params.initialRigidity || 10.0;
         this.state = {
-            nodes: [], atoms: [], quarks: [], time: 0, running: false,
-            currentPhase: 'PRIMORDIAL',
-            parameters: { ...params, stabilityLimit: params.stabilityLimit || 2.0 },
-            constants: { ...CONSTANTS },
-            expansionFactor: 1.0,
-            statistics: { 
-                meanEnergy: 0, entropy: 0, complexity: 0, entanglementIndex: 0, 
-                coherenceLevel: 1.0, quantumCoherence: 1.0, hubbleFlow: 0, curvature: 0, avgZeta: 1.0, 
-                avgBindingEnergy: 0, totalResidualMass: 0, averageCharge: 0, totalAtoms: 0, 
-                currentRigidity: this.currentRigidity, totalVorticity: 0, avgInteractionGradient: 0,
-                avgEntangledStability: 1.0, structuralTension: 0, totalRotations: 0, anomaliesDetected: 0,
-                massAuditResidual: 0, experimentalDeviance: 0, standardCompatibility: 1.0,
-                newtonianError: 0, refractiveIndex: 1.0, snellDeviance: 0, vorticityDeviance: 0,
-                gradientDeviance: 0, avgStability: 1.0, totalProtons: 0, lockingDeviance: 0, topologyError: 0
-            },
-            fabricDeformation: [], entangledPairs: [], recentCollapses: [],
+            nodes: [], quarks: [], time: 0, running: false,
+            parameters: { ...params },
+            statistics: { meanEnergy: 0, stdDevEnergy: 0, entropy: 0, complexity: 0, entanglementIndex: 0, coherenceLevel: 1.0 },
+            fabricDeformation: [],
+            spaceship: { x: -1.2, y: 0.6, v: 0.8 },
+            entangledPairs: [],
             sharedMemory: { 
-                userDeductions: "", evolutionLogs: [], pendingActions: [], physicalViolations: [],
-                externalCosmoData: [], peerReports: {}
-            }
+                ia1Draft: "", ia2Draft: "", errors: [], patches: [], 
+                userDeductions: "", evolutionLogs: [], pendingActions: [], realDataRefs: [] 
+            },
+            recentCollapses: []
         };
         this.initializeNodes();
+        this.initializeGrid();
+    }
+
+    private initializeGrid() {
+        this.state.fabricDeformation = Array(this.gridRes + 1).fill(0).map(() => Array(this.gridRes + 1).fill(0));
     }
 
     initializeNodes() {
-        this.state.nodes = []; this.state.atoms = []; this.state.quarks = []; this.state.entangledPairs = [];
-        this.state.recentCollapses = []; this.state.expansionFactor = 1.0; this.state.time = 0;
-        this.currentRigidity = this.state.parameters.initialRigidity;
-        this.state.currentPhase = 'PRIMORDIAL';
-        
+        this.state.nodes = [];
+        this.state.quarks = [];
+        this.state.entangledPairs = [];
         const p = this.state.parameters;
-        for (let i = 0; i < p.n_abc; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const r = (0.2 + Math.random() * 0.4) / (p.density || 1);
+        const isMaya = p.scale === 1; 
+
+        for (let i = 0; i < p.n_abc * 3; i++) {
+            let x, y;
+            if (isMaya) {
+                const rows = Math.sqrt(p.n_abc * 3);
+                x = ((i % rows) / rows) * 2 - 1;
+                y = (Math.floor(i / rows) / rows) * 2 - 1;
+            } else {
+                const angle = (i / (p.n_abc * 3)) * Math.PI * 2;
+                const r = (0.2 + MathUtils.gaussian() * 0.1) * (1 / p.density);
+                x = r * Math.cos(angle);
+                y = r * Math.sin(angle);
+            }
+
+            const type: NodeType = i % 3 === 0 ? 'a' : i % 3 === 1 ? 'b' : 'c';
             this.state.nodes.push({
-                id: ++this.idCounter, type: 'a', particleClass: 'vacuum',
-                x: r * Math.cos(angle), y: r * Math.sin(angle), z: (Math.random()-0.5)*0.1,
-                vecA: { x: 1, y: 0, z: 0 }, vecB: { x: -0.5, y: Math.sqrt(3)/2, z: 0 }, vecC: { x: -0.5, y: -Math.sqrt(3)/2, z: 0 },
-                topologicalCharge: 0, hamiltonianTension: 0, spinVorticity: 0, stabilityStatus: 1.0,
-                bindingEnergy: 0, resonanceFreq: 0.5 + Math.random() * 2, nucleusId: null, zeta: 1.0,
-                residualMass: 0, color: '#4fc3f7', velocity: { x: (Math.random()-0.5)*0.01, y: (Math.random()-0.5)*0.01, z: 0 },
-                vibrationPhase: Math.random() * Math.PI * 2, isCollapsed: false, accumulatedAction: 0,
-                superposition: 0, effectiveMass: 0, spinVector: { x: 0, y: 0, z: 1 }, accumulatedAngle: 0,
-                fractionalFlag: false, previousVecB: { x: -0.5, y: Math.sqrt(3)/2, z: 0 }, closureError: 0
+                id: ++this.idCounter, type, x, y,
+                charge: type === 'a' ? 0.66 : type === 'b' ? -0.22 : -0.11,
+                color: type === 'a' ? '#FF4444' : type === 'b' ? '#4444FF' : '#44FF44',
+                energy: PLANCK_ENERGY,
+                velocity: { x: MathUtils.gaussian() * 0.005, y: MathUtils.gaussian() * 0.005 },
+                accumulatedAction: 0, vibrationPhase: Math.random() * Math.PI * 2,
+                vibrationFreq: (5 + Math.random() * 5) * p.radioPi,
+                radiusField: (0.05 + Math.random() * 0.05) * p.radioPi,
+                isCollapsed: false,
+                zeta: 1.0 + Math.random() * 0.1,
+                superposition: 1.0,
+                vecA: { x: 1, y: 0, z: 0 },
+                vecB: { x: -0.5, y: 0.866, z: 0 },
+                vecC: { x: -0.5, y: -0.866, z: 0 }
             });
         }
-        this.calculateUniverseStats();
-        this.initialTotalVorticity = this.state.statistics.totalVorticity;
     }
 
     update() {
-        if (!this.state.parameters) return;
         const dt = 0.016 * this.state.parameters.timeSpeed;
-        const p = this.state.parameters;
         this.state.time += dt;
-
-        this.updatePhases();
-        this.updateParticlePhysics(dt);
-        this.updateStructuralIntegrity(dt);
-        this.updateTopologicalIntegrity(dt);
-        this.updateMassAudit(dt);
-        this.updateEmpiricalValidation(dt); 
-        this.updateStandardAudit(dt); 
-        this.updateInteractions(dt);
-        this.updateQuarkDynamics(dt);
-        this.updateNucleonSynthesis(dt);
-        this.updateSnellValidation(dt); 
+        
+        this.updateFabric();
+        this.updateNodes(dt);
+        this.updateWaveFunctionCollapse(dt);
         this.updateEntanglement(dt);
-        this.calculateUniverseStats();
+        this.calculateStats();
+
+        // Cleanup old collapses
+        this.state.recentCollapses = this.state.recentCollapses.filter(c => this.state.time - c.time < 1.0);
     }
 
-    private updateSnellValidation(dt: number) {
-        const p = this.state.parameters;
-        this.refractiveIndex = Math.sqrt(this.currentRigidity * p.density) / (p.radioPi + 0.1);
-        const theta1 = 45 * (Math.PI / 180);
-        const sinTheta2 = (1.0 / (this.refractiveIndex + 0.001)) * Math.sin(theta1);
-        if (sinTheta2 <= 1.0) {
-            this.snellDeviance = Math.abs(Math.asin(sinTheta2) - (theta1 * 0.8));
-        }
-    }
-
-    private updateQuarkDynamics(dt: number) {
-        const p = this.state.parameters;
-        this.state.quarks.forEach(q => {
-            q.position.x += q.velocity.x * dt;
-            q.position.y += q.velocity.y * dt;
-            q.velocity.x *= 0.98; q.velocity.y *= 0.98;
-        });
-    }
-
-    private updateNucleonSynthesis(dt: number) {
-        const p = this.state.parameters;
-        const freeQuarks = this.state.quarks.filter(q => q.nucleonId === null);
-        if (freeQuarks.length >= 3) {
-            const cluster = freeQuarks.slice(0, 3);
-            const nucleon: Atom = {
-                id: ++this.atomCounter, type: 'proton', mass: 1.0,
-                position: { x: cluster[0].position.x, y: cluster[0].position.y },
-                velocity: { x: 0, y: 0 }, quarks: cluster.map(q => q.id), stability: 1.0
-            };
-            cluster.forEach(q => q.nucleonId = nucleon.id);
-            this.state.atoms.push(nucleon);
-        }
-    }
-
-    private updateStandardAudit(dt: number) {
-        const nodes = this.state.nodes.filter(n => !n.isCollapsed);
-        if (nodes.length < 2) return;
-        let err = 0;
-        for (let i = 0; i < Math.min(nodes.length, 20); i++) {
-            const acc = vectorNorm(nodes[i].velocity) / (dt || 0.001);
-            err += Math.abs(acc - 0.05 / (nodes[i].effectiveMass + 0.01));
-        }
-        this.newtonianError = err / 20;
-        this.standardCompatibility = Math.max(0, 1.0 - (this.newtonianError * 0.1));
-    }
-
-    private updatePhases() {
-        const complexity = this.state.statistics.complexity;
-        if (complexity > 50) this.state.currentPhase = 'COSMIC';
-        else if (complexity > 20) this.state.currentPhase = 'STELLAR';
-        else if (this.state.atoms.length > 0) this.state.currentPhase = 'ATOMIC';
-        else this.state.currentPhase = 'PRIMORDIAL';
-    }
-
-    private updateEmpiricalValidation(dt: number) {
-        const protons = this.state.atoms.filter(n => n.type === 'proton');
-        this.experimentalDeviance = protons.length > 0 ? Math.abs(protons[0].mass - 1.0) : 0;
-    }
-
-    private updateMassAudit(dt: number) {
-        let total = 0;
-        this.state.nodes.forEach(n => {
-            if (n.isCollapsed) return;
-            const sumV = { x: n.vecA.x + n.vecB.x + n.vecC.x, y: n.vecA.y + n.vecB.y + n.vecC.y, z: n.vecA.z + n.vecB.z + n.vecC.z };
-            n.closureError = vectorNorm(sumV);
-            total += n.closureError;
-            n.residualMass = n.closureError * 0.1;
-        });
-        this.massAuditResidual = total;
-    }
-
-    private updateTopologicalIntegrity(dt: number) {
-        this.state.nodes.forEach(n => {
-            if (n.isCollapsed) return;
-            const dot = dotProduct(normalizeVector(n.vecB), normalizeVector(n.previousVecB));
-            n.accumulatedAngle += Math.acos(Math.max(-1, Math.min(1, dot)));
-            n.previousVecB = { ...n.vecB };
-            if (n.accumulatedAngle > 2 * Math.PI) { this.totalRotations++; n.accumulatedAngle -= 2 * Math.PI; }
-        });
-    }
-
-    private updateStructuralIntegrity(dt: number) {
-        const nodes = this.state.nodes.filter(n => !n.isCollapsed);
-        const target = 0.1 * this.state.parameters.radioPi;
-        let tension = 0;
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < Math.min(i + 5, nodes.length); j++) {
-                const d = Math.sqrt(Math.pow(nodes[i].x-nodes[j].x, 2) + Math.pow(nodes[i].y-nodes[j].y, 2));
-                tension += Math.abs(d - target);
+    private updateFabric() {
+        const mass = this.state.parameters.centralMass;
+        for (let i = 0; i <= this.gridRes; i++) {
+            for (let j = 0; j <= this.gridRes; j++) {
+                const x = (i/this.gridRes)*2-1; const y = (j/this.gridRes)*2-1;
+                const r = Math.sqrt(x*x + y*y);
+                const dimCount = this.state.parameters.dimensionCount ?? 3;
+                const dimFactor = dimCount / 3;
+                this.state.fabricDeformation[i][j] = Math.min(1.0, (mass * 0.2 * dimFactor) / (r + 0.1));
             }
         }
-        this.totalStructuralTension = tension / (nodes.length * 5 || 1);
     }
 
-    private updateParticlePhysics(dt: number) {
+    private updateNodes(dt: number) {
         const p = this.state.parameters;
+        const mass = p.centralMass;
+
         this.state.nodes.forEach(n => {
-            if (n.isCollapsed) return;
-            const crossBC = crossProduct(n.vecB, n.vecC);
-            n.vecA.x += p.couplingLambda * crossBC.x * dt;
-            n.vecA.y += p.couplingLambda * crossBC.y * dt;
-            n.vecA.z += p.couplingLambda * crossBC.z * dt;
-            const triple = dotProduct(n.vecA, crossBC);
-            n.topologicalCharge = Math.tanh(triple);
-            n.zeta = vectorNorm(n.vecC) / (vectorNorm(n.vecA) + 1e-9);
-            n.hamiltonianTension = (this.currentRigidity / 2) * (Math.pow(vectorNorm(n.vecA)*vectorNorm(n.vecB), 2) - 1);
-            n.effectiveMass = Math.max(0.01, Math.abs(n.hamiltonianTension) * 0.1);
-            n.stabilityStatus = Math.max(0, 1.0 - (Math.abs(n.topologicalCharge) * n.effectiveMass * 0.1));
-            n.vibrationPhase += (n.resonanceFreq + n.spinVorticity) * dt;
+            n.vibrationPhase += n.vibrationFreq * dt * 5;
+            const r = Math.sqrt(n.x*n.x + n.y*n.y);
+            
+            if (r > 0.01) {
+                const force = mass * 0.01 / (r * r + 0.1);
+                n.velocity.x -= (n.x/r) * force * dt;
+                n.velocity.y -= (n.y/r) * force * dt;
+            }
+
+            n.x += n.velocity.x * dt;
+            n.y += n.velocity.y * dt;
+
+            n.velocity.x *= (1 - 0.01 * p.density);
+            n.velocity.y *= (1 - 0.01 * p.density);
+
+            if (Math.abs(n.x) > 1.3) n.velocity.x *= -0.8;
+            if (Math.abs(n.y) > 0.9) n.velocity.y *= -0.8;
         });
     }
 
-    private updateInteractions(dt: number) {
-        const nodes = this.state.nodes.filter(n => !n.isCollapsed);
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-                const dx = nodes[i].x - nodes[j].x; const dy = nodes[i].y - nodes[j].y;
-                const d2 = dx*dx + dy*dy + 0.001;
-                const force = (nodes[i].topologicalCharge * nodes[j].topologicalCharge) / d2 * 0.001;
-                nodes[i].velocity.x += (dx/Math.sqrt(d2)) * force * dt;
-                nodes[i].velocity.y += (dy/Math.sqrt(d2)) * force * dt;
-                nodes[j].velocity.x -= (dx/Math.sqrt(d2)) * force * dt;
-                nodes[j].velocity.y -= (dy/Math.sqrt(d2)) * force * dt;
+    private updateWaveFunctionCollapse(dt: number) {
+        const p = this.state.parameters;
+        const collapseRadius = 0.04 * p.radioPi;
+        const collapseProb = 0.01 * p.strongEnergy * dt;
+
+        if (Math.random() < collapseProb) {
+            const freeNodes = this.state.nodes.filter(n => !n.isCollapsed && !this.state.quarks.some(q => q.nodes.includes(n.id)));
+            for (let i = 0; i < freeNodes.length; i++) {
+                const n1 = freeNodes[i];
+                const nearby = freeNodes.filter(n2 => !n2.isCollapsed && n2.id !== n1.id && MathUtils.dist(n1.x, n1.y, n2.x, n2.y) < collapseRadius);
+                
+                if (nearby.length >= 2) {
+                    const trio = [n1];
+                    const typesFound = new Set([n1.type]);
+                    
+                    for (const n of nearby) {
+                        if (!typesFound.has(n.type)) {
+                            typesFound.add(n.type);
+                            trio.push(n);
+                        }
+                        if (trio.length === 3) break;
+                    }
+
+                    if (trio.length === 3) {
+                        this.state.quarks.push({
+                            id: ++this.idCounter,
+                            type: 'up',
+                            charge: 0.66,
+                            nodes: trio.map(n => n.id),
+                            position: { x: trio[0].x, y: trio[0].y },
+                            velocity: { x: 0, y: 0 },
+                            color: '#FFCC00'
+                        });
+                        
+                        trio.forEach(n => { n.isCollapsed = true; });
+                        this.state.recentCollapses.push({ x: trio[0].x, y: trio[0].y, time: this.state.time });
+                        
+                        this.state.sharedMemory.evolutionLogs.push("IA5: Materia detectada. Colapso de onda exitoso.");
+                        break;
+                    }
+                }
             }
         }
-        nodes.forEach(n => { n.x += n.velocity.x * dt; n.y += n.velocity.y * dt; n.velocity.x *= 0.95; n.velocity.y *= 0.95; });
     }
 
     private updateEntanglement(dt: number) {
-        const nodes = this.state.nodes.filter(n => !n.isCollapsed);
-        if (this.state.entangledPairs.length < 5 && nodes.length >= 2) {
-            this.state.entangledPairs.push({ id1: nodes[0].id, id2: nodes[1].id, strength: 1.0, frequency: 1.0 });
+        const p = this.state.parameters;
+        const entanglementRadius = 0.06 * p.radioPi;
+        
+        this.state.entangledPairs = this.state.entangledPairs.filter(([id1, id2]) => {
+            const n1 = this.state.nodes.find(n => n.id === id1);
+            const n2 = this.state.nodes.find(n => n.id === id2);
+            return n1 && n2 && MathUtils.dist(n1.x, n1.y, n2.x, n2.y) < entanglementRadius * 3;
+        });
+
+        if (this.state.nodes.length > 2 && Math.random() < 0.1 * p.weakEnergy) {
+            const n1 = this.state.nodes[Math.floor(Math.random() * this.state.nodes.length)];
+            const nearby = this.state.nodes.filter(n2 => n2.id !== n1.id && MathUtils.dist(n1.x, n1.y, n2.x, n2.y) < entanglementRadius);
+            
+            if (nearby.length > 0) {
+                const n2 = nearby[Math.floor(Math.random() * nearby.length)];
+                if (!this.state.entangledPairs.some(pair => pair.includes(n1.id) && pair.includes(n2.id))) {
+                    this.state.entangledPairs.push([n1.id, n2.id]);
+                }
+            }
         }
-        this.state.entangledPairs.forEach(p => p.strength = Math.max(0, p.strength - 0.001 * dt));
-        this.state.entangledPairs = this.state.entangledPairs.filter(p => p.strength > 0);
+
+        this.state.entangledPairs.forEach(([id1, id2]) => {
+            const n1 = this.state.nodes.find(n => n.id === id1);
+            const n2 = this.state.nodes.find(n => n.id === id2);
+            if (n1 && n2) {
+                const avgFreq = (n1.vibrationFreq + n2.vibrationFreq) / 2;
+                n1.vibrationFreq = avgFreq;
+                n2.vibrationFreq = avgFreq;
+                
+                const diff = n1.vibrationPhase - n2.vibrationPhase;
+                n1.vibrationPhase -= diff * 0.05;
+                n2.vibrationPhase += diff * 0.05;
+            }
+        });
     }
 
-    private calculateUniverseStats() {
-        const nodes = this.state.nodes;
-        const activeNodes = nodes.filter(n => !n.isCollapsed);
-        const avgStability = activeNodes.length > 0 ? activeNodes.reduce((a, b) => a + b.stabilityStatus, 0) / activeNodes.length : 1.0;
-        const avgZeta = nodes.reduce((a, b) => a + b.zeta, 0) / nodes.length;
+    private calculateStats() {
+        const n = this.state.nodes.length || 1;
+        const energies = this.state.nodes.map(node => 0.5 * (node.velocity.x**2 + node.velocity.y**2));
+        const mean = energies.reduce((a, b) => a + b, 0) / n;
+        
         this.state.statistics = {
-            ...this.state.statistics, totalAtoms: this.state.atoms.length, avgStability, avgZeta,
-            complexity: (nodes.length / 100) + (this.state.atoms.length * 10),
-            structuralTension: this.totalStructuralTension, totalRotations: this.totalRotations,
-            massAuditResidual: this.massAuditResidual, standardCompatibility: this.standardCompatibility,
-            snellDeviance: this.snellDeviance, coherenceLevel: avgStability * (1.0 - this.snellDeviance),
-            totalVorticity: nodes.reduce((a, b) => a + b.spinVorticity, 0)
+            meanEnergy: mean,
+            stdDevEnergy: Math.sqrt(energies.reduce((a, b) => a + (b - mean)**2, 0) / n),
+            entropy: Math.log(mean + 1.1),
+            complexity: (this.state.quarks.length * 15) / n,
+            entanglementIndex: this.state.entangledPairs.length / n,
+            coherenceLevel: 1.0 - (Math.log(this.state.entangledPairs.length + 1) / 10)
         };
     }
 
-    updateParams(p: Partial<SimulationParameters>) { this.state.parameters = { ...this.state.parameters, ...p }; }
-    reset() { this.initializeNodes(); }
-    getMetrics() { return { ...this.state.statistics, phase: this.state.currentPhase }; }
+    updateParams(p: Partial<SimulationParameters>) {
+        if (!p) return;
+        this.state.parameters = { ...this.state.parameters, ...p };
+    }
+
+    reset() {
+        this.state.nodes = []; this.state.quarks = []; this.state.entangledPairs = []; this.state.recentCollapses = []; this.state.time = 0; 
+        this.initializeNodes();
+    }
+
+    getMetrics() {
+        return { ...this.state.statistics, nodeCount: this.state.nodes.length, quarkCount: this.state.quarks.length };
+    }
 }

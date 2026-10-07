@@ -1,74 +1,101 @@
 
-export type NodeState = 'a' | 'b' | 'c' | 'A' | 'B' | 'C';
+export type NodeType = 'a' | 'b' | 'c';
 
 export interface ABCNode {
-  id: number;
-  x: number;
-  y: number;
-  z: number;
-  state: NodeState;
-  energy: number;
-  isExcited: boolean;
-  connections: number[];
+    id: number;
+    type: NodeType;
+    x: number;
+    y: number;
+    charge: number;
+    color: string;
+    energy: number;
+    velocity: { x: number; y: number };
+    accumulatedAction: number;
+    vibrationPhase: number;
+    vibrationFreq: number;
+    radiusField: number;
+    // v3.0 visualization properties
+    isCollapsed?: boolean;
+    zeta?: number;
+    superposition?: number;
+    vecA?: { x: number; y: number; z: number };
+    vecB?: { x: number; y: number; z: number };
+    vecC?: { x: number; y: number; z: number };
 }
 
-export interface ABCEdge {
-  id: number;
-  node1: number;
-  node2: number;
-  length: number;
-  naturalLength: number;
-  tension: number;
-  color: string;
+export interface Quark {
+    id: number;
+    type: 'up' | 'down' | 'strange' | 'unknown';
+    charge: number;
+    nodes: number[];
+    position: { x: number; y: number };
+    velocity: { x: number; y: number };
+    color: string;
 }
 
-export interface ABCTriangle {
-  id: number;
-  nodes: [number, number, number];
-  states: [NodeState, NodeState, NodeState];
-  curvature: number;
-}
-
-export interface MassPoint {
-  id: number;
-  position: { x: number; y: number; z: number };
-  composition: { A: number; b: number; c: number };
-  totalMass: number;
-}
-
-export interface SimulationMetrics {
-  tick: number;
-  totalEnergy: number;
-  avgCurvature: number;
-  radialDeform: number;
-  numExcited: number;
-}
-
-export interface ValidationResult {
-  predicted: number;
-  actual: number;
-  error: number;
-  status: 'success' | 'warning' | 'error';
+export interface SimulationParameters {
+    scale: number;
+    n_abc: number;
+    centralMass: number;
+    timeSpeed: number;
+    velocity: number; 
+    density: number;
+    strongEnergy: number;
+    weakEnergy: number;
+    radioPi: number;
+    evolutionRate: number;
+    dimensionCount: number;
 }
 
 export interface GlobalState {
-  a: number;
-  b: number;
-  c: number;
-  alpha: number;
-  alpha_w: number;
-  alpha_s: number;
-  currentTick: number;
-  isRunning: boolean;
-  nodes: ABCNode[];
-  edges: ABCEdge[];
-  triangles: ABCTriangle[];
-  massPoints: MassPoint[];
-  logs: LogEntry[];
+    nodes: ABCNode[];
+    quarks: Quark[];
+    time: number;
+    running: boolean;
+    parameters: SimulationParameters;
+    statistics: {
+        meanEnergy: number;
+        stdDevEnergy: number;
+        entropy: number;
+        complexity: number;
+        entanglementIndex: number;
+        coherenceLevel: number;
+    };
+    fabricDeformation: number[][];
+    spaceship: { x: number; y: number; v: number; };
+    entangledPairs: [number, number][];
+    sharedMemory: {
+        ia1Draft: string;
+        ia2Draft: string;
+        errors: string[];
+        patches: string[];
+        userDeductions: string;
+        evolutionLogs: string[];
+        pendingActions: string[];
+        realDataRefs: any[];
+    };
+    recentCollapses: { x: number; y: number; time: number }[];
 }
 
-export interface LogEntry {
-  timestamp: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+export interface ChatMessage {
+    sender: string;
+    message: string;
+    color: string;
+    timestamp: Date;
+}
+
+export interface IAState {
+    confidence: number;
+    running: boolean;
+    lastResponse?: string;
+    status: 'idle' | 'scanning' | 'repairing' | 'error' | 'evolving' | 'searching' | 'collapsing';
+}
+
+export interface TheoryTestResult {
+    name: string;
+    description: string;
+    passed: boolean;
+    value: number;
+    target: string;
+    details: string;
 }

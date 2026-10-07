@@ -1,7 +1,5 @@
 {
-  "name": "Data Analyst AI Network Dashboard",
-  "description": "A high-performance monitoring and interaction dashboard for the Data Analyst AI Network (DAAN), featuring real-time agent tracking, computational orchestration, and multi-agent workflow visualization.",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
+  "name": "Copy of Simulador ABC Evolutivo",
+  "description": "A Quantum-Cosmological simulation system featuring 7 specialized AIs and emergent matter generation.",
+  "requestFramePermissions": []
 }
