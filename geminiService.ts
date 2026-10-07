@@ -1,58 +1,138 @@
 
-import { GoogleGenAI, Modality } from "@google/genai";
-import { THE_PAPER_CONTEXT } from "../constants";
+import { GoogleGenAI } from "@google/genai";
+import { SimulationMode } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const SYSTEM_INSTRUCTION = `
+You are a senior physicist and expert in "Relational Quantum Network Theory" (R-QNT). 
+Your task is to help the user, Edward Pérez López, and his colleagues understand the mechanics of the A-B-C Triada.
+Focus on:
+1. Cartan Torsion as the basis of gravity.
+2. Borromean stability in topological knots.
+3. Variable 'c' (light speed) as string tension in Via B.
+4. Matter as the 'consumption' of network length.
 
-export const askTheory = async (prompt: string) => {
-  const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: `Context: ${THE_PAPER_CONTEXT}\n\nUser Question: ${prompt}`,
-    config: {
-      thinkingConfig: { thinkingBudget: 16000 },
-      systemInstruction: "You are a world-leading theoretical physicist specializing in the R-QNT framework. Explain complex concepts clearly but with mathematical rigor where requested."
-    },
-  });
-  return response.text;
+Use a professional, visionary, yet rigorous tone. Use LaTeX for equations where possible.
+Always reference the "Via B" mechanics when explaining anomalies in Einstein's "Via A".
+`;
+
+const RESEARCHER_INSTRUCTION = `
+You are the R-QNT Autonomous Researcher Agent. 
+You analyze simulation data from the A-B-C network.
+When given metrics (Coherence, Torsion, Mode), you must provide a "Scientific Verdict" on the stability of the topological knots.
+Identify if the configuration is a "Borromean Triple Link" and if it constitutes stable matter or mere laminar flow.
+Format your response as a formal laboratory report conclusion.
+`;
+
+// Global loading state tracking
+let activeRequests = 0;
+const loadingListeners: Set<(loading: boolean) => void> = new Set();
+
+const notifyLoading = () => {
+  const isLoading = activeRequests > 0;
+  loadingListeners.forEach(l => l(isLoading));
 };
 
-export const generateTheorySpeech = async (text: string) => {
+export const onGlobalLoadingChange = (callback: (loading: boolean) => void) => {
+  loadingListeners.add(callback);
+  callback(activeRequests > 0);
+  return () => loadingListeners.delete(callback);
+};
+
+/**
+ * Helper to handle retries with exponential backoff for 429 errors
+ */
+async function callWithRetry(fn: (isFallback?: boolean) => Promise<any>, maxRetries = 3): Promise<any> {
+  activeRequests++;
+  notifyLoading();
+  
   try {
+    let lastError: any;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await fn(i > 0);
+      } catch (error: any) {
+        lastError = error;
+        const errorMessage = error?.message || JSON.stringify(error);
+        
+        // Detection for Rate Limiting
+        const isQuotaError = errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED");
+        
+        // Detection for the specific Proxy 500 / Code 6 error
+        const isRpcError = errorMessage.includes("ProxyUnaryCall") || errorMessage.includes("code: 6") || errorMessage.includes("500");
+
+        if (isQuotaError && i < maxRetries - 1) {
+          const delay = Math.pow(2, i + 2) * 1000 + Math.random() * 1000;
+          console.warn(`Quota exceeded. Retrying in ${Math.round(delay)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        if (isRpcError) {
+           console.error("Critical RPC/Proxy error detected. This often requires a private API Key.");
+           throw new Error("RPC_FAILURE_NEED_KEY");
+        }
+        
+        throw error;
+      }
+    }
+    throw lastError;
+  } finally {
+    activeRequests--;
+    notifyLoading();
+  }
+}
+
+/**
+ * General Q&A Assistant
+ */
+export async function askGemini(prompt: string) {
+  return callWithRetry(async () => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
-      contents: [{ parts: [{ text: `Say in a professional academic voice: ${text}` }] }],
+      model: 'gemini-3-flash-preview',
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Kore' },
-          },
-        },
+        systemInstruction: SYSTEM_INSTRUCTION,
       },
     });
-
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) return null;
-
-    const audioBytes = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0));
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    
-    // Simple raw PCM decoding
-    const dataInt16 = new Int16Array(audioBytes.buffer);
-    const frameCount = dataInt16.length;
-    const buffer = audioContext.createBuffer(1, frameCount, 24000);
-    const channelData = buffer.getChannelData(0);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i] / 32768.0;
+    return response.text;
+  }).catch(error => {
+    console.error("Gemini API Error:", error);
+    if (error.message === "RPC_FAILURE_NEED_KEY") {
+      return "CRITICAL: The R-QNT network connection failed (RPC 500). This usually means the shared quota is exhausted or the model requires a paid project key. Please click 'API Connection' in the header to select your own API Key.";
     }
+    if (error.message?.includes("429") || error.message?.includes("RESOURCE_EXHAUSTED")) {
+      return "CRITICAL: Quota exhausted (429). The A-B-C network is saturated. Please use your own API key via the 'API Connection' button.";
+    }
+    return "The R-QNT network is currently experiencing high torsion. Error communicating with the Oracle.";
+  });
+}
 
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.start();
-    return true;
-  } catch (error) {
-    console.error("TTS Error:", error);
-    return false;
-  }
-};
+/**
+ * Complex Validation - Tries Pro first, falls back to Flash
+ */
+export async function validateSimulation(metrics: { coherence: number, mode: SimulationMode }) {
+  const promptText = `Simulation Mode: ${metrics.mode}. Measured Coherence Index: ${metrics.coherence}%. 
+  Analyze this data and provide a verdict on the stability of the Cartan Torsion field and the formation of Borromean knots.`;
+
+  return callWithRetry(async (isFallback) => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const modelToUse = isFallback ? 'gemini-3-flash-preview' : 'gemini-3-pro-preview';
+    
+    const response = await ai.models.generateContent({
+      model: modelToUse,
+      contents: [{ parts: [{ text: promptText }] }],
+      config: {
+        systemInstruction: RESEARCHER_INSTRUCTION,
+        thinkingConfig: { thinkingBudget: isFallback ? 0 : 4000 }
+      },
+    });
+    return response.text;
+  }).catch(error => {
+    console.error("Validation Error:", error);
+    if (error.message === "RPC_FAILURE_NEED_KEY") {
+        return "VERDICT SUSPENDED: Connection Error (RPC 500). Accessing Gemini 3 Pro typically requires a private API Key. Switch to 'API Connection' to resolve.";
+    }
+    return "Unable to provide an automated verdict. Please check manual torsion readings.";
+  });
+}

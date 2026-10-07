@@ -1,101 +1,85 @@
 
-export type NodeType = 'a' | 'b' | 'c';
-
-export interface ABCNode {
-    id: number;
-    type: NodeType;
-    x: number;
-    y: number;
-    charge: number;
-    color: string;
-    energy: number;
-    velocity: { x: number; y: number };
-    accumulatedAction: number;
-    vibrationPhase: number;
-    vibrationFreq: number;
-    radiusField: number;
-    // v3.0 visualization properties
-    isCollapsed?: boolean;
-    zeta?: number;
-    superposition?: number;
-    vecA?: { x: number; y: number; z: number };
-    vecB?: { x: number; y: number; z: number };
-    vecC?: { x: number; y: number; z: number };
+export enum SimulationMode {
+  VIA_A = 'Via A: Einstein (Constant c)',
+  VIA_B = 'Via B: R-QNT (Variable c)'
 }
 
-export interface Quark {
-    id: number;
-    type: 'up' | 'down' | 'strange' | 'unknown';
-    charge: number;
-    nodes: number[];
-    position: { x: number; y: number };
-    velocity: { x: number; y: number };
-    color: string;
+export enum AppTab {
+  SIMULATOR = 'SIMULATOR',
+  PAPER = 'PAPER',
+  ASSISTANT = 'ASSISTANT',
+  RESEARCHER = 'RESEARCHER',
+  HUB = 'HUB',
+  ANOMALY_25D = 'ANOMALY_25D',
+  EXTENSIONS = 'EXTENSIONS'
 }
 
-export interface SimulationParameters {
-    scale: number;
-    n_abc: number;
-    centralMass: number;
-    timeSpeed: number;
-    velocity: number; 
-    density: number;
-    strongEnergy: number;
-    weakEnergy: number;
-    radioPi: number;
-    evolutionRate: number;
-    dimensionCount: number;
+export interface Vector3D {
+  x: number;
+  y: number;
+  z: number;
 }
 
-export interface GlobalState {
-    nodes: ABCNode[];
-    quarks: Quark[];
-    time: number;
-    running: boolean;
-    parameters: SimulationParameters;
-    statistics: {
-        meanEnergy: number;
-        stdDevEnergy: number;
-        entropy: number;
-        complexity: number;
-        entanglementIndex: number;
-        coherenceLevel: number;
-    };
-    fabricDeformation: number[][];
-    spaceship: { x: number; y: number; v: number; };
-    entangledPairs: [number, number][];
-    sharedMemory: {
-        ia1Draft: string;
-        ia2Draft: string;
-        errors: string[];
-        patches: string[];
-        userDeductions: string;
-        evolutionLogs: string[];
-        pendingActions: string[];
-        realDataRefs: any[];
-    };
-    recentCollapses: { x: number; y: number; time: number }[];
+export interface RQNTConfig {
+  elasticity: number;
+  torsion: number;
+  density: number;
+  interactionStrength: number;
+  maxInteractionDist: number;
+  dt: number;
 }
 
-export interface ChatMessage {
-    sender: string;
-    message: string;
-    color: string;
-    timestamp: Date;
+export interface Node {
+  position: Vector3D;
+  velocity: Vector3D;
+  force: Vector3D;
 }
 
-export interface IAState {
-    confidence: number;
-    running: boolean;
-    lastResponse?: string;
-    status: 'idle' | 'scanning' | 'repairing' | 'error' | 'evolving' | 'searching' | 'collapsing';
+export interface RQNTString {
+  id: string;
+  color: string;
+  nodes: Node[];
 }
 
-export interface TheoryTestResult {
-    name: string;
-    description: string;
-    passed: boolean;
-    value: number;
-    target: string;
-    details: string;
+export interface ValidationReport {
+  coherenceIndex: number;
+  residualTorsion: number;
+  localTension?: number;
+  baryonicMass?: number;
+  status: 'ESTABLE' | 'CRÍTICO' | 'FLUJO LAMINAR' | 'SÍNTESIS_NEUTRON' | 'NUDO_ESTABLE' | 'FLUJO_RADIANTE' | 'ENLACE_COHERENTE' | 'REPULSION_TOPOLOGICA' | 'MATERIA_ESTABLE_NEUTRON' | 'REINTENTANDO_SINCRO' | 'ESTRÉS_TOTAL' | 'CRISTALIZACIÓN';
+  verdict: string;
+  timestamp: string;
+  torsionVector?: [number, number, number];
+  linkageData?: {
+    distance: number;
+    force: number;
+  };
+  stressMetrics?: {
+    resilience: number;
+    gravitationalMass: number;
+  };
+}
+
+// 25-D Anomaly Hunter Interfaces
+export interface TimeAnomalyData {
+  date: string;
+  stationCount: number;
+  avgDeviationPs: number;
+  correlationPattern: string;
+  dataSource: string;
+  rawDataUrl?: string;
+}
+
+export interface AstrophysicsEvent {
+  date: string;
+  type: 'GAMMA_RAY_BURST' | 'MAGNETAR_FLARE' | 'SOLAR_STORM';
+  source: string;
+  significance: number;
+  dataUrl: string;
+}
+
+export interface AnomalyHunterResult {
+  anomaly: TimeAnomalyData | null;
+  trigger: AstrophysicsEvent | null;
+  rqntConfidence: number;
 }
