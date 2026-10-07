@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><title>RG Topology Viewer</title><style>
+body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
+canvas { border: 1px solid #333; background: #050505; border-radius: 50%; margin-top: 20px; }
+button { background: #38bdf8; border: none; padding: 10px 20px; color: #000; font-weight: bold; cursor: pointer; margin: 10px; border-radius: 5px; }
+</style></head><body>
+<h2>Arquitectura Nodal R-QNT</h2>
+<button onclick='draw(19)'>Clúster 19 (Electrón)</button>
+<button onclick='draw(57)'>Clúster 57 (Protón)</button><br>
+<canvas id='c' width='600' height='600'></canvas>
+<script>
+const ctx = document.getElementById('c').getContext('2d');
+function node(x, y, r, color) { ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); }
+function draw(n) {
+    ctx.clearRect(0,0,600,600);
+    let center = 300, scale = 60;
+    node(center, center, 8, '#fbbf24'); // Huella c
+    for(let i=0; i<6; i++) {
+        let a = i*Math.PI/3; node(center+scale*Math.cos(a), center+scale*Math.sin(a), 6, '#38bdf8');
+    }
+    if(n>=19) {
+        for(let i=0; i<12; i++) {
+            let a = i*Math.PI/6; node(center+scale*1.8*Math.cos(a), center+scale*1.8*Math.sin(a), 5, '#f87171');
+        }
+    }
+    ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.strokeText(n==19?'Escala λ=1/18':'Escala η=π/57', 20, 580);
+}
+draw(19);
+</script></body></html>

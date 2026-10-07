@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><title>RG K-Limit: Agujero Negro</title><style>
+body { background: #000; color: #fff; text-align: center; font-family: monospace; }
+input { width: 300px; }
+#alerta { color: #f87171; font-size: 20px; height: 30px; }
+</style></head><body>
+<h2>Presión de Fase (Ω) vs Límite K (2.3627)</h2>
+<input type='range' id='s' min='0' max='5' step='0.01' value='1'><br>
+<h3>Ω = <span id='v'>1.00</span></h3>
+<div id='alerta'></div>
+<canvas id='canvas' width='800' height='400'></canvas>
+<script>
+const s = document.getElementById('s'), ctx = document.getElementById('canvas').getContext('2d');
+let nodes = []; for(let i=0;i<400;i++) nodes.push({x: Math.random()*800, y: Math.random()*400, ox: 0, oy:0});
+function anim() {
+    let omega = parseFloat(s.value);
+    document.getElementById('v').innerText = omega.toFixed(2);
+    let collapsed = omega >= 2.3627;
+    document.getElementById('alerta').innerText = collapsed ? '¡RUPTURA TOPOLÓGICA!' : '';
+    ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.fillRect(0,0,800,400);
+    ctx.fillStyle = collapsed ? '#f87171' : '#38bdf8';
+    nodes.forEach(n => {
+        if(collapsed) { n.x += (400-n.x)*0.05; n.y += (200-n.y)*0.05; }
+        else { n.x += (Math.random()-0.5)*omega*2; n.y += (Math.random()-0.5)*omega*2; }
+        ctx.beginPath(); ctx.arc(n.x, n.y, 2, 0, 7); ctx.fill();
+    });
+    requestAnimationFrame(anim);
+}
+for(let n of nodes) { n.ox = n.x; n.oy = n.y; } anim();
+</script></body></html>

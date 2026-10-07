@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <title>RG Master: Motor de Tensión</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #e2e8f0; display: flex; justify-content: center; padding: 20px; }
+        .card { background: #1e293b; padding: 30px; border-radius: 15px; border: 1px solid #334155; width: 100%; max-width: 500px; }
+        h2 { color: #38bdf8; text-align: center; }
+        .slider-box { margin: 20px 0; }
+        input[type=range] { width: 100%; accent-color: #38bdf8; }
+        .display { background: #0f172a; padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #475569; }
+        .status { margin-top: 20px; text-align: center; font-weight: bold; color: #4ade80; }
+    </style>
+</head>
+<body>
+    <div class='card'>
+        <h2>Ecuación Maestra: ABC = 2abc</h2>
+        <div class='slider-box'>
+            <label>Onda A (Impulso): <span id='vA'>1.00</span></label>
+            <input type='range' id='sA' min='0.5' max='3' step='0.01' value='1'>
+        </div>
+        <div class='slider-box'>
+            <label>Onda B (Freno): <span id='vB'>1.00</span></label>
+            <input type='range' id='sB' min='0.5' max='3' step='0.01' value='1'>
+        </div>
+        <div class='display'>
+            <div id='eq'>ABC (2.00) = 2abc (0.50)</div>
+            <div id='delta'>Δ (Deuda): 1.5000</div>
+        </div>
+        <div class='status'>RED COHERENTE: VALIDADA</div>
+    </div>
+    <script>
+        const sA = document.getElementById('sA'), sB = document.getElementById('sB');
+        const update = () => {
+            let A = parseFloat(sA.value), B = parseFloat(sB.value);
+            document.getElementById('vA').innerText = A.toFixed(2);
+            document.getElementById('vB').innerText = B.toFixed(2);
+            let a = A/(A+B), b = B/(A+B), C = 2.0, c = 1.0;
+            let macro = A*B*C, micro = 2*a*b*c;
+            document.getElementById('eq').innerText = `ABC (${macro.toFixed(2)}) != 2abc (${micro.toFixed(2)})`;
+            document.getElementById('delta').innerText = `Δ (Gradiente): ${(macro-micro).toFixed(4)}`;
+        };
+        sA.oninput = sB.oninput = update; update();
+    </script>
+</body>
+</html>

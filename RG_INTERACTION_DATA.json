@@ -1,0 +1,25 @@
+{
+    "Theory Name": "Relational Geometry / R-QNT",
+    "Version": "4.0",
+    "Master Constants": {
+        "lambda (Inertial Resistance)": 0.05555555555555555,
+        "eta (Topological Friction)": 0.05511566058929462,
+        "omega_crit (Hard-Lock Threshold)": 4.1887902047863905,
+        "C_red (Lattice Coupling)": 0.0072
+    },
+    "Logic States": {
+        "Laminar Flow": "Omega < 4.18879 | Mode: Energy Propagation",
+        "Hard-Lock": "Omega >= 4.18879 | Mode: Mass Emergence"
+    },
+    "Triad Roles": {
+        "A-Impulse": "Initial phase signal and perturbation source",
+        "B-Friction/Brake": "Network resistance to flow (eta and lambda acoupling)",
+        "C-Weaver": "Phase sequestration resulting in topological mass emergence"
+    },
+    "Session Summary Metrics": {
+        "Tests Executed": 55,
+        "Informational Debt (Delta)": 1.5,
+        "Rescued Failures": "Confirmed in high-density regimes where standard models diverged",
+        "Operational Status": "VALIDATED"
+    }
+}

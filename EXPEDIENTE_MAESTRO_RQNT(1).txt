@@ -1,0 +1,52 @@
+====================================================
+      EXPEDIENTE MAESTRO DE INVESTIGACIÓN R-QNT     
+====================================================
+Total de archivos escaneados: 28
+
+--- PRIORIDAD ALTA: MOTORES Y CÓDIGOS BASE ---
+[*] EXPEDIENTE_MAESTRO_RQNT.txt
+    Ruta: ./EXPEDIENTE_MAESTRO_RQNT.txt
+    Data: Conceptos: ['ABC', 'Nodos', 'Fase C'] | Números: ['57', '19', '0**0']
+
+[*] white.pdf
+    Ruta: ./drive/MyDrive/00_CORE_AXIOMS/white.pdf
+    Data: Conceptos: ['ABC', 'Cartan', 'Nodos'] | Números: ['57', '19', '0**0']
+
+[*] Documento sin título.pdf
+    Ruta: ./drive/MyDrive/Guardados de Chrome/Documento sin título.pdf
+    Data: Conceptos: ['RQNT', 'ABC', 'Torsion', 'Nodos'] | Números: ['57', '19', '0**0']
+
+[*] Geometria_Visual.txt
+    Ruta: ./drive/MyDrive/Simulacion_RG_Results/Geometria_Visual.txt
+    Data: Conceptos: ['Nodos', 'Fase C'] | Números: ['57', '19']
+
+
+--- PRIORIDAD MEDIA: ESTUDIOS ADYACENTES ---
+[-] rg_app.py
+    Ruta: ./rg_app.py
+    Data: Conceptos: ['Nodos'] | Números: ['57', '19']
+
+[-] 00_FUNDAMENTOS_VISUALES.txt
+    Ruta: ./00_FUNDAMENTOS_VISUALES.txt
+    Data: Conceptos: ['ABC'] | Números: ['0**0']
+
+[-] Documento sin título (1).pdf
+    Ruta: ./drive/MyDrive/Documento sin título (1).pdf
+    Data: Conceptos: ['ABC', 'Nodos'] | Números: ['19']
+
+[-] Documento sin título.pdf
+    Ruta: ./drive/MyDrive/Documento sin título.pdf
+    Data: Conceptos: ['ABC', 'Nodos'] | Números: ['19']
+
+[-] Documento sin título.txt
+    Ruta: ./drive/MyDrive/Documento sin título.txt
+    Data: Conceptos: ['ABC', 'Nodos'] | Números: ['19']
+
+[-] ESTADO_MOTOR_RG.txt
+    Ruta: ./drive/MyDrive/RG_RESEARCH_BACKUP/ESTADO_MOTOR_RG.txt
+    Data: Conceptos: ['ABC'] | Números: ['0**0']
+
+[-] Visuales_Geometricas.txt
+    Ruta: ./drive/MyDrive/Simulacion_RG_Results/Visuales_Geometricas.txt
+    Data: Conceptos: ['Fase C'] | Números: ['57', '19']
+

@@ -1,0 +1,24 @@
+# Manifiesto de la Red Cuántica Relacional (R-QNT / RG)
+## Autor: Edward P. López
+## Fecha: 2026
+
+### I. Ontología del Silencio y la Perturbación
+*   **Axioma 0:** El estado base es el Silencio Armónico ($|0\rangle$).
+*   **El Choque Primordial:** Definido por el operador de perturbación $\hat{P} = \cos(\theta)$.
+*   **La Medición Inicial:** $\langle 0| \hat{P} |0\rangle = 1$. El nacimiento de la identidad desde el vacío.
+
+### II. La Ecuación Maestra: ABC = 2abc
+*   **Dinámica de Rebote:** Las ondas $A=1$ y $B=1$ colisionan.
+*   **Normalización:** El rebote microscópico es $a = A/(A+B) = 0.5$.
+*   **Emergencia de C:** La relación escala macro/micro define $C = A/a = 2$.
+*   **La Huella (c):** El residuo central inmutable $c=1$.
+
+### III. Estructuras de Confinamiento (19 y 57)
+*   **Clúster 19 (Electrón):** 18 interacciones periféricas + 1 centro inmutable. Es el nodo de mínima tensión.
+*   **Hard-Lock 57 (Protón):** La unión trinitaria de 3 clústeres de 19 ($19 \times 3 = 57$). Representa el nuevo 'cero' saturado.
+*   **Fricción Nodal (\eta):** $\eta = \pi/57$. La resistencia que genera la flecha del tiempo.
+
+### IV. Gravedad y Agujeros Negros
+*   **Gravedad:** No es atracción, es empuje por gradiente de torsión ($\Delta\Omega$).
+*   **Agujero Negro:** Superación del límite de permisibilidad ($K=2.3627$).
+*   **Desbordamiento:** La Radiación de Hawking como el goteo de una red saturada.
