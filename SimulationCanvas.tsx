@@ -1,151 +1,146 @@
 
-import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { QuantumNode, Connection, NodeClass } from '../types';
-import { NODE_CONFIG, PHYSICS } from '../constants';
+import React, { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { BranchType, Knot, ParticleType } from '../types';
 
-interface SimulationCanvasProps {
-  nodes: QuantumNode[];
-  connections: Connection[];
-  onTick: (tick: number) => void;
-  onNodeMove: (id: string, x: number, y: number) => void;
-  isCollisionMode: boolean;
+interface Props {
+  branch: BranchType;
+  knots: Knot[];
+  showTorsion: boolean;
+  showStringDensity: boolean;
 }
 
-export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({ 
-  nodes, 
-  connections, 
-  onTick, 
-  onNodeMove,
-  isCollisionMode
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [draggedId, setDraggedId] = useState<string | null>(null);
+const SimulationCanvas: React.FC<Props> = ({ branch, knots, showTorsion, showStringDensity }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const networkRef = useRef<THREE.Group | null>(null);
+  const photonsRef = useRef<THREE.Group | null>(null);
 
-  const applyTetrahedralConstraint = (ctx: CanvasRenderingContext2D) => {
-    // Visual cue for geometry discrete
-    ctx.setLineDash([2, 5]);
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)';
-    ctx.beginPath();
-    for (let i = 0; i < ctx.canvas.width; i += 60) {
-      ctx.moveTo(i, 0); ctx.lineTo(i, ctx.canvas.height);
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050505);
+
+    const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
+    camera.position.set(20, 20, 20);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    containerRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 50);
+    pointLight.position.set(10, 10, 10);
+    scene.add(pointLight);
+
+    // Create Network Grid
+    const network = new THREE.Group();
+    const gridDim = 10;
+    const spacing = 2;
+    const material = new THREE.LineBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.3 });
+
+    for (let x = -gridDim; x <= gridDim; x++) {
+      for (let y = -gridDim; y <= gridDim; y++) {
+        const points = [new THREE.Vector3(x * spacing, y * spacing, -gridDim * spacing), new THREE.Vector3(x * spacing, y * spacing, gridDim * spacing)];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        network.add(new THREE.Line(geometry, material));
+      }
     }
-    for (let i = 0; i < ctx.canvas.height; i += 60) {
-      ctx.moveTo(0, i); ctx.lineTo(ctx.canvas.width, i);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-  };
+    scene.add(network);
+    networkRef.current = network;
 
-  const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    applyTetrahedralConstraint(ctx);
+    const photons = new THREE.Group();
+    scene.add(photons);
+    photonsRef.current = photons;
 
-    // Connections with Dynamic Tension
-    connections.forEach(conn => {
-      const s = nodes.find(n => n.id === conn.sourceId);
-      const t = nodes.find(n => n.id === conn.targetId);
-      if (s && t) {
-        const d = Math.sqrt(Math.pow(s.x - t.x, 2) + Math.pow(s.y - t.y, 2));
-        const tension = Math.min(d / PHYSICS.CONNECTION_DISTANCE, 2.5);
-        ctx.beginPath();
-        ctx.lineWidth = 1 + tension;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + tension * 0.2})`;
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(t.x, t.y);
-        ctx.stroke();
-        
-        if (tension > 1.8) {
-          ctx.fillStyle = '#ffaa44';
-          ctx.font = '8px mono';
-          ctx.fillText("TENSIÓN RED", (s.x+t.x)/2, (s.y+t.y)/2 - 10);
+    const animate = () => {
+      requestAnimationFrame(animate);
+      
+      // Rotate network slightly for dynamic feel
+      network.rotation.y += 0.001;
+      
+      // Update photon paths (simplified representation)
+      if (photonsRef.current && photonsRef.current.children.length === 0) {
+        // Mock photon propagation
+        const photonMaterial = new THREE.MeshBasicMaterial({ color: 0x60a5fa });
+        const photonGeo = new THREE.SphereGeometry(0.1);
+        for(let i=0; i<5; i++) {
+          const p = new THREE.Mesh(photonGeo, photonMaterial);
+          p.position.set(-20, (Math.random()-0.5)*10, (Math.random()-0.5)*10);
+          (p as any).velocity = new THREE.Vector3(0.2, 0, 0);
+          photonsRef.current.add(p);
         }
       }
-    });
 
-    // Nodes
-    nodes.forEach(node => {
-      const config = NODE_CONFIG[node.type];
-      const radius = PHYSICS.NODE_RADIUS[node.type];
-      
-      // Time Dilation Effect
-      if (node.id === draggedId) {
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, radius * 4, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.stroke();
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px sans-serif';
-        ctx.fillText("Δt Dilatación", node.x + 20, node.y - 20);
-      }
+      photonsRef.current.children.forEach(p => {
+        const photon = p as THREE.Mesh;
+        const vel = (photon as any).velocity as THREE.Vector3;
+        
+        // Basic R-QNT bending logic simulation
+        let localC = 1.0;
+        knots.forEach(k => {
+          const knotPos = new THREE.Vector3(...k.position);
+          const dist = photon.position.distanceTo(knotPos);
+          if (dist < 5) {
+            const pull = knotPos.clone().sub(photon.position).normalize().multiplyScalar(0.02 / (dist + 0.1));
+            vel.add(pull);
+            if (branch === BranchType.C_VARIABLE) {
+               localC = Math.max(0.1, 1.0 - (1.0 / (dist + 1.0)));
+            }
+          }
+        });
 
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = config.color;
-      ctx.fill();
-      
-      // Core Glow
-      const g = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, radius * 2.5);
-      g.addColorStop(0, `${config.color}55`);
-      g.addColorStop(1, 'transparent');
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, radius * 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = g;
-      ctx.fill();
-    });
+        photon.position.add(vel.clone().multiplyScalar(localC));
+        if (photon.position.x > 20) photon.position.x = -20;
+      });
 
-    if (isCollisionMode) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    }
-  }, [nodes, connections, draggedId, isCollisionMode]);
-
-  useEffect(() => {
-    let frame = 0;
-    const loop = () => {
-      const ctx = canvasRef.current?.getContext('2d');
-      if (ctx) draw(ctx);
-      onTick(frame++);
-      requestAnimationFrame(loop);
+      renderer.render(scene, camera);
     };
-    const anim = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(anim);
-  }, [draw, onTick]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const target = nodes.find(n => Math.sqrt(Math.pow(n.x - x, 2) + Math.pow(n.y - y, 2)) < 25);
-    if (target) setDraggedId(target.id);
-  };
+    animate();
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (draggedId) {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      onNodeMove(draggedId, e.clientX - rect.left, e.clientY - rect.top);
-    }
-  };
+    const handleResize = () => {
+      if (!containerRef.current || !rendererRef.current) return;
+      camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
+      camera.updateProjectionMatrix();
+      rendererRef.current.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    };
 
-  const handleMouseUp = () => setDraggedId(null);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      containerRef.current?.removeChild(renderer.domElement);
+    };
+  }, [branch, knots]);
 
+  // Handle Knot Visualization
   useEffect(() => {
-    const c = canvasRef.current;
-    if (c) {
-      c.width = c.parentElement?.clientWidth || 800;
-      c.height = c.parentElement?.clientHeight || 600;
-    }
-  }, []);
+    if (!networkRef.current) return;
+    
+    // Clear old knots
+    const oldKnots = networkRef.current.children.filter(c => c.name === 'knot');
+    oldKnots.forEach(k => networkRef.current?.remove(k));
 
-  return (
-    <canvas 
-      ref={canvasRef} 
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      className="w-full h-full bg-[#050508] rounded-xl border border-white/10 cursor-crosshair"
-    />
-  );
+    knots.forEach(k => {
+      const geo = k.type === ParticleType.NEUTRON ? new THREE.TorusKnotGeometry(0.5, 0.1, 64, 8) : new THREE.SphereGeometry(0.6, 32, 32);
+      const mat = new THREE.MeshPhongMaterial({ 
+        color: k.type === ParticleType.PROTON ? 0xef4444 : k.type === ParticleType.ELECTRON ? 0x3b82f6 : 0x10b981,
+        emissive: 0x111111,
+        shininess: 100
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(...k.position);
+      mesh.name = 'knot';
+      networkRef.current?.add(mesh);
+    });
+  }, [knots]);
+
+  return <div ref={containerRef} className="w-full h-full" />;
 };
+
+export default SimulationCanvas;

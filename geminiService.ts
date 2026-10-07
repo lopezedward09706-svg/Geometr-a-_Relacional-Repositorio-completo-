@@ -1,35 +1,58 @@
 
-import { GoogleGenAI } from "@google/genai";
-import { IAAgentType } from "../types";
+import { GoogleGenAI, Modality } from "@google/genai";
+import { THE_PAPER_CONTEXT } from "../constants";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
-const SYSTEM_INSTRUCTIONS: Record<IAAgentType, string> = {
-  Analista: "Busca patrones de quarks y anomalías en la red ABC. Enfoque experimental.",
-  Teórica: "Rigurosa. Verifica que la suma de novenos sea siempre correcta y coherente con el paper ABC.",
-  Geómetra: "Calcula áreas y volúmenes de Planck basados en la geometría tetraédrica discreta.",
-  Termodinámica: "Mide el 'Impuesto de la Red': calor disipado y entropía del sistema.",
-  Cosmóloga: "Calcula la tasa de expansión universal y la constante de Hubble basándose en vibraciones.",
-  Crítica: "Skeptical. Busca inconsistencias lógicas o fallas en las conexiones de la red.",
-  Puente: "Coordinador central. Sintetiza los hallazgos de todas las IAs para el usuario."
+export const askTheory = async (prompt: string) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-pro-preview",
+    contents: `Context: ${THE_PAPER_CONTEXT}\n\nUser Question: ${prompt}`,
+    config: {
+      thinkingConfig: { thinkingBudget: 16000 },
+      systemInstruction: "You are a world-leading theoretical physicist specializing in the R-QNT framework. Explain complex concepts clearly but with mathematical rigor where requested."
+    },
+  });
+  return response.text;
 };
 
-export const getAgentInsight = async (agent: IAAgentType, systemData: any): Promise<string> => {
+export const generateTheorySpeech = async (text: string) => {
   try {
-    const prompt = `Analiza el estado actual: ${JSON.stringify(systemData)}. 
-    Genera un comentario breve (máximo 45 palabras) con tono científico y futurista.`;
-
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: { 
-        systemInstruction: SYSTEM_INSTRUCTIONS[agent] 
-      }
+      model: "gemini-2.5-flash-preview-tts",
+      contents: [{ parts: [{ text: `Say in a professional academic voice: ${text}` }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: 'Kore' },
+          },
+        },
+      },
     });
 
-    // Ensure we return a string and handle possible undefined from response.text
-    return response.text || "Transmisión fallida: No se recibió respuesta coherente del modelo.";
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!base64Audio) return null;
+
+    const audioBytes = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0));
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    
+    // Simple raw PCM decoding
+    const dataInt16 = new Int16Array(audioBytes.buffer);
+    const frameCount = dataInt16.length;
+    const buffer = audioContext.createBuffer(1, frameCount, 24000);
+    const channelData = buffer.getChannelData(0);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i] / 32768.0;
+    }
+
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start();
+    return true;
   } catch (error) {
-    return `Error en canal ${agent}. Interferencia cuántica detectada.`;
+    console.error("TTS Error:", error);
+    return false;
   }
 };
