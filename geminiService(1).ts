@@ -1,58 +1,42 @@
 
-import { GoogleGenAI, Modality } from "@google/genai";
-import { THE_PAPER_CONTEXT } from "../constants";
+import { GoogleGenAI } from "@google/genai";
+import { GlobalState } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+export async function askABCAssistant(query: string, state: Partial<GlobalState>) {
+  // Always use a named parameter for the API key from process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  const systemInstruction = `
+    You are a theoretical physicist specialized in 'ABC Theory of Emergent Quantum Gravity'.
+    In this theory:
+    - a, b, c are fundamental values in Planck units.
+    - Mass is calculated as |n_a*a - n_b*b - n_c*c| * alpha.
+    - Gravity is not a force but a property emerging from the curvature of a discrete ABC lattice.
+    - Tics are discrete time units.
+    
+    Current simulation context:
+    - Parameters: a=${state.a}, b=${state.b}, c=${state.c}
+    - Coupling: alpha=${state.alpha}, alpha_s=${state.alpha_s}
+    - Nodes: ${state.nodes?.length}
+    - Curvature: ${state.triangles?.reduce((acc, t) => acc + Math.abs(t.curvature), 0) || 0}
+    
+    Provide insightful, technically grounded responses. Suggest parameter optimizations to match known physical constants like electron mass (0.511 MeV) or G (6.674e-11).
+  `;
 
-export const askTheory = async (prompt: string) => {
-  const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: `Context: ${THE_PAPER_CONTEXT}\n\nUser Question: ${prompt}`,
-    config: {
-      thinkingConfig: { thinkingBudget: 16000 },
-      systemInstruction: "You are a world-leading theoretical physicist specializing in the R-QNT framework. Explain complex concepts clearly but with mathematical rigor where requested."
-    },
-  });
-  return response.text;
-};
-
-export const generateTheorySpeech = async (text: string) => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
-      contents: [{ parts: [{ text: `Say in a professional academic voice: ${text}` }] }],
+      model: 'gemini-3-flash-preview',
+      contents: query,
       config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Kore' },
-          },
-        },
+        systemInstruction,
+        temperature: 0.7,
       },
     });
 
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) return null;
-
-    const audioBytes = Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0));
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    
-    // Simple raw PCM decoding
-    const dataInt16 = new Int16Array(audioBytes.buffer);
-    const frameCount = dataInt16.length;
-    const buffer = audioContext.createBuffer(1, frameCount, 24000);
-    const channelData = buffer.getChannelData(0);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i] / 32768.0;
-    }
-
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.start();
-    return true;
+    // Access the .text property directly as per Gemini API guidelines
+    return response.text || "Lo siento, no pude procesar tu consulta.";
   } catch (error) {
-    console.error("TTS Error:", error);
-    return false;
+    console.error("Gemini Error:", error);
+    return "Error al conectar con el asistente de IA.";
   }
-};
+}

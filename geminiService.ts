@@ -1,24 +1,42 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { GlobalState } from "../types";
 
-// Fix: Initializing GoogleGenAI using named parameter with the exact process.env.API_KEY string
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export async function askABCAssistant(query: string, state: Partial<GlobalState>) {
+  // Always use a named parameter for the API key from process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  const systemInstruction = `
+    You are a theoretical physicist specialized in 'ABC Theory of Emergent Quantum Gravity'.
+    In this theory:
+    - a, b, c are fundamental values in Planck units.
+    - Mass is calculated as |n_a*a - n_b*b - n_c*c| * alpha.
+    - Gravity is not a force but a property emerging from the curvature of a discrete ABC lattice.
+    - Tics are discrete time units.
+    
+    Current simulation context:
+    - Parameters: a=${state.a}, b=${state.b}, c=${state.c}
+    - Coupling: alpha=${state.alpha}, alpha_s=${state.alpha_s}
+    - Nodes: ${state.nodes?.length}
+    - Curvature: ${state.triangles?.reduce((acc, t) => acc + Math.abs(t.curvature), 0) || 0}
+    
+    Provide insightful, technically grounded responses. Suggest parameter optimizations to match known physical constants like electron mass (0.511 MeV) or G (6.674e-11).
+  `;
 
-export const getAIAnalysis = async (iaName: string, context: string) => {
   try {
-    // Fix: Using gemini-3-flash-preview model for basic text analysis as per guidelines
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `You are acting as the specialized AI: ${iaName}. 
-      Task context: ${context}.
-      The context is about the ABC Theory (where nodes a=+1/3, b=-2/9, c=-1/9 form space-time).
-      Provide a concise, expert-level technical validation report (max 3 sentences) in Spanish. 
-      Use emojis related to your specific role.`,
+      contents: query,
+      config: {
+        systemInstruction,
+        temperature: 0.7,
+      },
     });
-    // Fix: Accessing the .text property directly from the response object
-    return response.text || "No se pudo generar el análisis.";
+
+    // Access the .text property directly as per Gemini API guidelines
+    return response.text || "Lo siento, no pude procesar tu consulta.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Error en la conexión con el servidor de IA.";
+    return "Error al conectar con el asistente de IA.";
   }
-};
+}
