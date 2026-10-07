@@ -1,38 +1,74 @@
 
+export type NodeState = 'a' | 'b' | 'c' | 'A' | 'B' | 'C';
+
 export interface ABCNode {
-  type: 'a' | 'b' | 'c';
+  id: number;
   x: number;
   y: number;
-  z: number; // Added for 3D
-  dx: number;
-  dy: number;
-  dz: number; // Added for 3D
-  radius: number;
+  z: number;
+  state: NodeState;
+  energy: number;
+  isExcited: boolean;
+  connections: number[];
+}
+
+export interface ABCEdge {
+  id: number;
+  node1: number;
+  node2: number;
+  length: number;
+  naturalLength: number;
+  tension: number;
+  color: string;
+}
+
+export interface ABCTriangle {
+  id: number;
+  nodes: [number, number, number];
+  states: [NodeState, NodeState, NodeState];
+  curvature: number;
+}
+
+export interface MassPoint {
+  id: number;
+  position: { x: number; y: number; z: number };
+  composition: { A: number; b: number; c: number };
+  totalMass: number;
+}
+
+export interface SimulationMetrics {
+  tick: number;
+  totalEnergy: number;
+  avgCurvature: number;
+  radialDeform: number;
+  numExcited: number;
+}
+
+export interface ValidationResult {
+  predicted: number;
+  actual: number;
+  error: number;
+  status: 'success' | 'warning' | 'error';
+}
+
+export interface GlobalState {
+  a: number;
+  b: number;
+  c: number;
+  alpha: number;
+  alpha_w: number;
+  alpha_s: number;
+  currentTick: number;
+  isRunning: boolean;
+  nodes: ABCNode[];
+  edges: ABCEdge[];
+  triangles: ABCTriangle[];
+  massPoints: MassPoint[];
+  logs: LogEntry[];
 }
 
 export interface LogEntry {
-  id: string;
   timestamp: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'ia1' | 'ia2' | 'ia3' | 'ia4' | 'ia5' | 'ia6' | 'ia7';
-  icon?: string;
-}
-
-export interface IAConfig {
-  id: number;
-  name: string;
-  color: string;
-  icon: string;
-  function: string;
-  description: string;
-  confidence: number;
-  status: string;
-}
-
-export interface ParticleDef {
-  name: string;
-  combination: string[];
-  charge: number;
-  mass: number;
-  description: string;
+  type: 'info' | 'success' | 'warning' | 'error';
 }

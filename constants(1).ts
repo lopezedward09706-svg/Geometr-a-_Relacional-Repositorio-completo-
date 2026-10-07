@@ -1,19 +1,26 @@
 
-export const PLANCK_LENGTH = 1.616255e-35;
-export const PLANCK_TENSION = 4.8e41;
-export const C_VACUUM = 299792458;
+export const PHYSICS = {
+  PLANCK_MASS: 2.176434e-8,
+  PLANCK_LENGTH: 1.616255e-35,
+  PLANCK_TIME: 5.391247e-44,
+  SPEED_OF_LIGHT: 299792458,
+  ELECTRON_MASS_MEV: 0.5109989461,
+  PROTON_MASS_MEV: 938.27208816,
+  G_CONSTANT: 6.67430e-11
+};
 
-export const SIM_SCALE = 10;
-export const GRID_SUBDIVISIONS = 20;
+export const INITIAL_ABC = {
+  a: 0.159155,
+  b: 0.158456,
+  c: 0.158456,
+  alpha: 0.0072973525693,
+  alpha_w: 0.0339,
+  alpha_s: 0.118
+};
 
-export const THE_PAPER_CONTEXT = `
-R-QNT (Rama-Quantum Network Torsion) Theory Summary:
-- Spacetime is a 3D elastic network of fields A, B, and C.
-- Vacuum is A+B+C=0 (flat).
-- Matter: Topological knots (Borromean links) in the network.
-- Charge: Geometric chirality (Right-handed = Positive, Left-handed = Negative).
-- Gravity: Restorative tension from "string consumption" in knots.
-- R-QNT-C: c is constant, relativity emerges effectively.
-- R-QNT-V: c varies with local network stiffness k (c_local = c0 * sqrt(k0/k_local)).
-- Neutron: A proton knot neutralized by counter-torsion impact.
-`;
+export const GRID_CONFIG = {
+  dimX: 12,
+  dimY: 12,
+  dimZ: 1,
+  spacing: 2.0
+};
