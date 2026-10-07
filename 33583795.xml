@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<employment:employment xmlns:address="http://www.orcid.org/ns/address" xmlns:email="http://www.orcid.org/ns/email" xmlns:history="http://www.orcid.org/ns/history" xmlns:employment="http://www.orcid.org/ns/employment" xmlns:education="http://www.orcid.org/ns/education" xmlns:other-name="http://www.orcid.org/ns/other-name" xmlns:deprecated="http://www.orcid.org/ns/deprecated" xmlns:funding="http://www.orcid.org/ns/funding" xmlns:research-resource="http://www.orcid.org/ns/research-resource" xmlns:service="http://www.orcid.org/ns/service" xmlns:researcher-url="http://www.orcid.org/ns/researcher-url" xmlns:distinction="http://www.orcid.org/ns/distinction" xmlns:internal="http://www.orcid.org/ns/internal" xmlns:membership="http://www.orcid.org/ns/membership" xmlns:person="http://www.orcid.org/ns/person" xmlns:personal-details="http://www.orcid.org/ns/personal-details" xmlns:bulk="http://www.orcid.org/ns/bulk" xmlns:common="http://www.orcid.org/ns/common" xmlns:record="http://www.orcid.org/ns/record" xmlns:keyword="http://www.orcid.org/ns/keyword" xmlns:activities="http://www.orcid.org/ns/activities" xmlns:qualification="http://www.orcid.org/ns/qualification" xmlns:external-identifier="http://www.orcid.org/ns/external-identifier" xmlns:error="http://www.orcid.org/ns/error" xmlns:preferences="http://www.orcid.org/ns/preferences" xmlns:invited-position="http://www.orcid.org/ns/invited-position" xmlns:work="http://www.orcid.org/ns/work" xmlns:peer-review="http://www.orcid.org/ns/peer-review" put-code="33583795" display-index="0" visibility="public">
+    <common:created-date>2025-12-22T21:47:37.381Z</common:created-date>
+    <common:last-modified-date>2026-03-04T04:50:00.818Z</common:last-modified-date>
+    <common:source>
+        <common:source-orcid>
+            <common:uri>https://orcid.org/0009-0009-0717-5536</common:uri>
+            <common:path>0009-0009-0717-5536</common:path>
+            <common:host>orcid.org</common:host>
+        </common:source-orcid>
+        <common:source-name>P.L.Edward0101</common:source-name>
+    </common:source>
+    <common:department-name>gravedad cuantica R-QNT/ABC POR TORSION</common:department-name>
+    <common:role-title>INVESTIGADOR PRINCIPAL, INDEPENDIENTE, Y CREADOR TEORICO </common:role-title>
+    <common:start-date>
+        <common:year>2025</common:year>
+        <common:month>12</common:month>
+    </common:start-date>
+    <common:organization>
+        <common:name>rqntabc</common:name>
+        <common:address>
+            <common:city>Juárez</common:city>
+            <common:region>Chih.</common:region>
+            <common:country>MX</common:country>
+        </common:address>
+    </common:organization>
+    <common:url>https://zenodo.org/me/uploads?q=&amp;f=shared_with_me%3Afalse&amp;l=list&amp;p=1&amp;s=10&amp;sort=newest</common:url>
+</employment:employment>

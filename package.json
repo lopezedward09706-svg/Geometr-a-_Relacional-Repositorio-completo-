@@ -1,5 +1,5 @@
 {
-  "name": "simulador-de-red-cuántica-abc-v2.0☺",
+  "name": "data-analyst-ai-network-dashboard",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,9 +10,9 @@
     "preinstall": "node preinstall.js"
   },
   "dependencies": {
-    "react-dom": "^19.2.3",
     "react": "^19.2.3",
-    "@google/genai": "^1.34.0"
+    "react-dom": "^19.2.3",
+    "@google/genai": "^1.37.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

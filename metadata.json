@@ -1,5 +1,7 @@
 {
-  "name": "Simulador de Red Cuántica ABC v2.0☺",
-  "description": "Plataforma de investigación cuántica avanzada con 7 agentes IA, telemetría real y laboratorio de colisiones relativistas.",
-  "requestFramePermissions": []
+  "name": "Data Analyst AI Network Dashboard",
+  "description": "A high-performance monitoring and interaction dashboard for the Data Analyst AI Network (DAAN), featuring real-time agent tracking, computational orchestration, and multi-agent workflow visualization.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }
