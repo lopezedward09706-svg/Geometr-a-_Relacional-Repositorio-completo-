@@ -1,0 +1,26 @@
+============================================================
+00_FUNDAMENTOS_VISUALES.txt - GEOMETRÍA RELACIONAL (RG)
+============================================================
+
+1. EL SILENCIO ARMÓNICO (|0⟩):
+   Estado base de la red donde no existe perturbación.
+   Ĥ|0⟩ = 0.
+
+2. EL ESPEJO TOPOLÓGICO (cos(0)=1):
+   El primer choque de fase que genera la Huella (c=1).
+
+3. LA TRÍADA ABC (Ecuación Maestra: ABC = 2abc):
+
+   [A] IMPULSO: El frente de onda primordial (Entrada).
+   [B] FRENO: La resistencia de la red al flujo (Residuo).
+   [C] TEJEDOR: El nudo que secuestra información (Masa).
+
+4. ESTADOS DE RED:
+
+   - FLUJO LAMINAR (Ω < 4.18879):
+     La información viaja como onda elástica (Energía).
+
+   - HARD-LOCK (Ω ≥ 4.18879):
+     La red se bloquea volumétricamente (Materia).
+
+============================================================

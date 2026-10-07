@@ -1,0 +1,19 @@
+=== CATÁLOGO DE CURIOSIDADES R-QNT ===
+Total de sospechosos encontrados: 16
+
+ARCHIVO: rg_app.py | UBICACIÓN: ./rg_app.py | HUELLAS: 57, 19, Omega
+ARCHIVO: MANIFIESTO_FINAL_RG.txt | UBICACIÓN: ./MANIFIESTO_FINAL_RG.txt | HUELLAS: 4.188
+ARCHIVO: 00_FUNDAMENTOS_VISUALES.txt | UBICACIÓN: ./00_FUNDAMENTOS_VISUALES.txt | HUELLAS: 4.188
+ARCHIVO: 13.30.17.544197.log | UBICACIÓN: ./.config/logs/2026.04.02/13.30.17.544197.log | HUELLAS: 57, 19
+ARCHIVO: 13.30.51.422062.log | UBICACIÓN: ./.config/logs/2026.04.02/13.30.51.422062.log | HUELLAS: 57, 19
+ARCHIVO: Documento sin título (1).pdf | UBICACIÓN: ./drive/MyDrive/Documento sin título (1).pdf | HUELLAS: 57, 19
+ARCHIVO: Documento sin título.pdf | UBICACIÓN: ./drive/MyDrive/Documento sin título.pdf | HUELLAS: 57, 19
+ARCHIVO: Documento sin título.txt | UBICACIÓN: ./drive/MyDrive/Documento sin título.txt | HUELLAS: 19
+ARCHIVO: white.pdf | UBICACIÓN: ./drive/MyDrive/00_CORE_AXIOMS/white.pdf | HUELLAS: 57, 19
+ARCHIVO: readme_notas .pdf | UBICACIÓN: ./drive/MyDrive/00_CORE_AXIOMS/readme_notas .pdf | HUELLAS: 57, 19
+ARCHIVO: Documento sin título.pdf | UBICACIÓN: ./drive/MyDrive/Guardados de Chrome/Documento sin título.pdf | HUELLAS: 57, 19
+ARCHIVO: Untitled0.ipynb | UBICACIÓN: ./drive/MyDrive/Colab Notebooks/Untitled0.ipynb | HUELLAS: 19, Omega, 4.188
+ARCHIVO: ESTADO_MOTOR_RG.txt | UBICACIÓN: ./drive/MyDrive/RG_RESEARCH_BACKUP/ESTADO_MOTOR_RG.txt | HUELLAS: Omega, 4.188
+ARCHIVO: Visuales_Geometricas.txt | UBICACIÓN: ./drive/MyDrive/Simulacion_RG_Results/Visuales_Geometricas.txt | HUELLAS: 57, 19
+ARCHIVO: EXPLICACION_SISTEMA_RG.txt | UBICACIÓN: ./drive/MyDrive/Simulacion_RG_Results/EXPLICACION_SISTEMA_RG.txt | HUELLAS: 57
+ARCHIVO: Geometria_Visual.txt | UBICACIÓN: ./drive/MyDrive/Simulacion_RG_Results/Geometria_Visual.txt | HUELLAS: 57, 19

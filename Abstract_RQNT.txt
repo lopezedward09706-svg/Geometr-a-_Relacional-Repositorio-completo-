@@ -1,0 +1,3 @@
+ABSTRACT: RELATIONAL GEOMETRY AND R-QNT THEORY
+
+This manifesto proposes a non-continuous ontology where spacetime emerges from a discrete hexagonal network of phase-nodes. Starting from the 'Axiom of Silence' (0=0) and its initial perturbation (cos(0)=1), we derive the master equation ABC=2abc. We demonstrate that mass is not an intrinsic property but a phase transition (Hard-Lock) occurring at specific nodal densities (n=19, n=57). Gravity is redefined as a gradient of torsional pressure, and black holes are identified as topological saturation zones that 'leak' information to maintain network integrity. This framework provides a path toward unifying quantum dynamics with cosmological expansion without external parameters.
