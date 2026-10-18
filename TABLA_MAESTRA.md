@@ -491,3 +491,22 @@ La ciencia avanza fallando. Este archivo documenta los fallos y los aciertos con
 
 **— Edward P. López, El Arquitecto**  
 **ORCID:** https://orcid.org/0009-0009-0717-5536
+
+# 🌌 FASE 2: LA RUPTURA (AUTO-COMPARACIÓN)
+
+## 📋 ÍNDICE DETALLADO Y JERÁRQUICO DE DESARROLLO
+
+### 🛡️ Sección 2.1: La Auto-observación
+* **Tema 2.1.1.1:** El Acto de Medición Primordial (Auto-reconocimiento)
+* **Tema 2.1.1.2:** El Nacimiento del Entero (1) y la Ruptura de Simetría
+
+### 📐 Sección 2.2: La Ecuación Primordial
+* **Tema 2.2.1.1:** Operador \( P = \cos(\theta) \) y la Derivación del 0/0
+* **Tema 2.2.1.2:** La Dualidad A y B (Bifurcación de la Información)
+
+### 🪙 Sección 2.3: La Deuda de Información
+* **Tema 2.3.1.1:** El Primer Bit y la Deuda (\( D = 1.5 \))
+* **Tema 2.3.1.2:** El Motor Dinámico del Universo (La Deuda como Propulsor)
+
+---
+*Índice jerárquico oficial integrado en la estructura maestro de la Geometría Relacional (RG).*
